@@ -62,7 +62,8 @@ jobs:
       - name: Remove macOS quarantine attributes
         if: ${{ matrix.os == 'macos-latest' }}
         run: |
-          echo "Clearing quarantine attributes from built app..."
+          echo "Clearing quarantine attributes from built app and dmg..."
+          sudo find release -type f -name "*.dmg" -exec xattr -cr {} \; || true
           sudo find release -type d -name "*.app" -exec xattr -cr {} \; || true
 
       - name: Upload build artifacts
