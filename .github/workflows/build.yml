@@ -22,14 +22,14 @@ jobs:
       - name: Enable pnpm
         run: corepack enable
 
-      # Node 설치
+      # Node.js 설치 및 pnpm 캐시
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'pnpm'
 
-      # pnpm 버전 고정 (선택적)
+      # pnpm 버전 고정 (선택 사항)
       - name: Use pnpm 9.x
         run: corepack prepare pnpm@9.12.0 --activate
 
@@ -43,19 +43,19 @@ jobs:
       - name: Rebuild native modules
         run: pnpm exec electron-builder install-app-deps
 
-      # OS별 빌드
+      # OS별 빌드 (배포 금지 옵션 추가)
       - name: Build app
         run: |
           if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-            pnpm run build:linux
+            pnpm exec electron-builder --linux --publish=never
           elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            pnpm run build:win
+            pnpm exec electron-builder --win --publish=never
           elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            pnpm run build:mac
+            pnpm exec electron-builder --mac --publish=never
           fi
         shell: bash
 
-      # 결과물 업로드
+      # 결과물 업로드 (Actions Artifacts)
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
