@@ -43,7 +43,6 @@ jobs:
       - name: Rebuild native modules
         run: pnpm exec electron-builder install-app-deps
 
-      # 🔥 이 단계 추가
       - name: Build renderer and main process
         run: pnpm exec electron-vite build
 
@@ -60,8 +59,14 @@ jobs:
           fi
         shell: bash
 
+      - name: Remove macOS quarantine attributes
+        if: ${{ matrix.os == 'macos-latest' }}
+        run: |
+          echo "Clearing quarantine attributes from built app..."
+          sudo find release -type d -name "*.app" -exec xattr -cr {} \; || true
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-${{ matrix.os }}-${{matrix.arch}}
+          name: build-${{ matrix.os }}-${{ matrix.arch }}
           path: release/
