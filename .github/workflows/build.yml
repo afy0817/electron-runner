@@ -1,4 +1,4 @@
-name: Electron Multi-Platform Build
+name: Electron Multi-Platform Build (pnpm)
 
 on:
   push:
@@ -18,33 +18,40 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Corepack으로 pnpm 활성화
+      - name: Enable pnpm
+        run: corepack enable
+
+      # Node 설치
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: 'pnpm'
 
+      # pnpm 버전 고정 (선택적)
+      - name: Use pnpm 10.x
+        run: corepack prepare pnpm@10.20.0 --activate
+
+      # 의존성 설치
       - name: Install dependencies
-        run: |
-          npm ci
+        run: pnpm install --frozen-lockfile
         env:
-          # electron-builder는 CI 모드에서 interactive prompt 막음
           CI: true
 
-      # Zeromq / sqlite3 같은 네이티브 모듈을 현재 OS 기준으로 리빌드
+      # 네이티브 모듈 리빌드 (sqlite3, zeromq 등)
       - name: Rebuild native modules
-        run: |
-          npx electron-builder install-app-deps
+        run: pnpm exec electron-builder install-app-deps
 
-      # electron-vite로 빌드 후 OS별 패키징
+      # OS별 빌드
       - name: Build app
         run: |
           if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-            npm run build:linux
+            pnpm run build:linux
           elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            npm run build:win
+            pnpm run build:win
           elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            npm run build:mac
+            pnpm run build:mac
           fi
         shell: bash
 
