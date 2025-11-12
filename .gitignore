@@ -57,3 +57,6 @@ web_modules/
 out
 build
 dist
+release
+.idea
+.vscode
