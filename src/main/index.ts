@@ -1,74 +1,92 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { ServerManager } from '@main/ServerManager'
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
 
-function createWindow(): void {
-  // Create the browser window.
+app.commandLine.appendSwitch('high-dpi-support', '1')
+// window 생성
+function windowHandle(serverUrl: string): BrowserWindow {
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
-    show: false,
+    title: 'Navifra HMI',
+    show: true,
     autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
-    }
+      partition: 'incognito-session'
+    },
+    kiosk: !import.meta.env.DEV,
+    icon: join(__dirname, '../../resources/icon.png')
   })
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })
-
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+  if (import.meta.env.DEV && process.env['ELECTRON_RENDERER_URL']) {
+    mainWindow.setPosition(50, 50)
+    mainWindow.setSize(1500, 600)
+    mainWindow.webContents.openDevTools({ mode: 'right' })
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    mainWindow.loadURL(serverUrl)
   }
+  return mainWindow
 }
-
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
-  // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
-
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
-  app.on('browser-window-created', (_, window) => {
-    optimizer.watchWindowShortcuts(window)
-  })
-
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
-
-  createWindow()
-
-  app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
-  })
-})
-
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+if (!app.requestSingleInstanceLock()) {
+  // 이미 실행중
+  app.whenReady().then(() => {
+    dialog.showMessageBoxSync({
+      type: 'warning', // info | warning | error | question | none
+      buttons: ['확인'],
+      defaultId: 0,
+      title: '중복 실행 감지',
+      message: '이미 앱이 실행 중입니다.',
+      detail: '여러개의 앱을 동시에 실행 할 수 없습니다.',
+      noLink: true // 버튼에 밑줄 제거
+    })
     app.quit()
-  }
+  })
+} else {
+  app.whenReady().then(async () => {
+    // express 서버 실행
+    const serverManager = new ServerManager()
+    // 서비스에 필요한 디렉토리 생성
+    serverManager.init().then((_res) => {
+      // ipc handler 생성
+      ipcMain.handle('app:close', () => {
+        app.quit()
+      })
+      // window 생성
+      let mainWindow: BrowserWindow = windowHandle(serverManager.SERVER_URL)
+      app.on('before-quit', () => {
+        serverManager.destroy()
+      })
+
+      // mac 에서 필요한 기능
+      app.on('activate', () => {
+        if (BrowserWindow.getAllWindows().length === 0) {
+          mainWindow = windowHandle(serverManager.SERVER_URL)
+        }
+      })
+    })
+  })
+
+  app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') {
+      app.quit()
+    }
+  })
+}
+process.on('uncaughtException', (e) => {
+  console.error('uncaughtException', e)
+  app.quit()
 })
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
+// 2. unhandledRejection 처리
+process.on('unhandledRejection', (e) => {
+  console.error('unhandledRejection', e)
+  app.quit()
+})

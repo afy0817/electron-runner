@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package pedro;
+
+// sub robot_alarm
+message RobotAlarm {
+  int64 timestamp = 1;
+  string code = 2;
+  string description = 3;
+}
+
+// HMI UI 에서만쓸거임
+message RobotAlarmList {
+  repeated RobotAlarm list = 1;
+}
+
+message REQ {
+  string uuid = 1;
+  string action = 2;
+  string json_data = 3;
+  string from = 4; // 요청을 보낸 곳
+}
+
+message REP {
+  string uuid = 1;
+  string result = 2;
+  string json_data = 3;
+}

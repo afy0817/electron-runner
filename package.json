@@ -6,19 +6,17 @@
   "author": "example.com",
   "homepage": "https://electron-vite.org",
   "scripts": {
-    "format": "prettier --write .",
-    "lint": "eslint --cache .",
-    "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
-    "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
-    "typecheck": "npm run typecheck:node && npm run typecheck:web",
-    "start": "electron-vite preview",
     "dev": "electron-vite dev",
-    "build": "npm run typecheck && electron-vite build",
+    "build": "electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "npm run build && electron-builder --mac",
-    "build:linux": "npm run build && electron-builder --linux"
+    "build:linux": "npm run build && electron-builder --linux",
+    "proto:lint": "npx prettier --write src/models/index.js src/models/index.d.ts && eslint --fix src/models/index.js src/models/index.d.ts",
+    "proto:js": "pbjs -t static-module -w es6 --es6 -o src/models/index.js src/models/proto/*.proto",
+    "proto:ts": "pbts -o src/models/index.d.ts src/models/index.js",
+    "proto:gen": "npm run proto:js && npm run proto:ts && npm run proto:lint"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
@@ -31,22 +29,92 @@
     "@electron-toolkit/eslint-config-prettier": "3.0.0",
     "@electron-toolkit/eslint-config-ts": "^3.1.0",
     "@electron-toolkit/tsconfig": "^2.0.0",
+    "@types/express": "^5.0.5",
+    "@types/lodash": "^4.17.20",
     "@types/node": "^22.18.6",
+    "@types/uuid": "^11.0.0",
     "@vitejs/plugin-vue": "^6.0.1",
+    "cors": "^2.8.5",
     "electron": "^38.1.2",
     "electron-builder": "^25.1.8",
     "electron-vite": "^4.0.1",
     "eslint": "^9.36.0",
     "eslint-plugin-vue": "^10.4.0",
+    "express": "^5.1.0",
+    "lodash": "^4.17.21",
+    "pinia": "^3.0.4",
     "prettier": "^3.6.2",
+    "protobufjs": "^7.5.4",
+    "protobufjs-cli": "^1.1.3",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "typescript": "^5.9.2",
+    "uuid": "^13.0.0",
     "vite": "^7.1.6",
     "vue": "^3.5.21",
     "vue-eslint-parser": "^10.2.0",
     "vue-tsc": "^3.0.7"
   },
+  "build": {
+    "compression": "maximum",
+    "electronLanguages": [
+      "en-US",
+      "ko"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/zeromq/**/*",
+      "node_modules/sqlite3/**/*",
+      "node_modules/cmake-ts/**/*"
+    ],
+    "files": [
+      "out",
+      "**/*.node",
+      "node_modules/zeromq/**/*",
+      "node_modules/sqlite3/**/*",
+      "node_modules/cmake-ts/**/*"
+    ],
+    "directories": {
+      "buildResources": "resources",
+      "output": "release"
+    },
+    "appId": "com.pedro.electron",
+    "productName": "Pedro Electron",
+    "icon": "resources/256x265.png",
+    "artifactName": "${productName}(${version}) Setup.${ext}",
+    "mac": {
+      "icon": "resources/512x512.png",
+      "target": "dmg"
+    },
+    "linux": {
+      "icon": "resources/",
+      "category": "Utility",
+      "target": [
+        "deb"
+      ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": true
+    }
+  },
   "pnpm": {
     "onlyBuiltDependencies": [
+      "esbuild",
+      "protobufjs",
+      "sqlite3",
+      "zeromq",
       "electron",
       "esbuild"
     ]
