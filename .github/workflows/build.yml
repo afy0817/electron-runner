@@ -1,0 +1,57 @@
+name: Electron Multi-Platform Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+        env:
+          # electron-builder는 CI 모드에서 interactive prompt 막음
+          CI: true
+
+      # Zeromq / sqlite3 같은 네이티브 모듈을 현재 OS 기준으로 리빌드
+      - name: Rebuild native modules
+        run: |
+          npx electron-builder install-app-deps
+
+      # electron-vite로 빌드 후 OS별 패키징
+      - name: Build app
+        run: |
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            npm run build:linux
+          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            npm run build:win
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            npm run build:mac
+          fi
+        shell: bash
+
+      # 결과물 업로드
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.os }}
+          path: |
+            release/
