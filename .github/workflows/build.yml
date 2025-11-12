@@ -1,11 +1,9 @@
-name: Electron Multi-Platform Build (pnpm)
+name: Electron Release Build (pnpm)
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+    tags:
+      - '*'
 
 jobs:
   build:
@@ -14,15 +12,13 @@ jobs:
         include:
           - os: ubuntu-latest
           - os: windows-latest
-          - os: macos-latest
-            arch: x64
-          - os: macos-latest
-            arch: arm64
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 태그 정보 포함
 
       - name: Enable pnpm
         run: corepack enable
@@ -48,26 +44,47 @@ jobs:
 
       - name: Package app
         run: |
+          TAG=${{ github.ref_name }}
+          BUILD_DATE=$(date +"%Y-%m-%d %H:%M:%S")
+
+          echo "TAG=$TAG"
+          echo "BUILD_DATE=$BUILD_DATE"
+
+          export TAG BUILD_DATE
+
           if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
             npm run build:linux
           elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             npm run build:win
-          elif [[ "${{ matrix.os }}" == "macos-latest" && "${{ matrix.arch }}" == "x64" ]]; then
-            npm run build:mac_amd
-          elif [[ "${{ matrix.os }}" == "macos-latest" && "${{ matrix.arch }}" == "arm64" ]]; then
-            npm run build:mac_arm
           fi
         shell: bash
-
-      - name: Remove macOS quarantine attributes
-        if: ${{ matrix.os == 'macos-latest' }}
-        run: |
-          echo "Clearing quarantine attributes from built app and dmg..."
-          sudo find release -type f -name "*.dmg" -exec xattr -cr {} \; || true
-          sudo find release -type d -name "*.app" -exec xattr -cr {} \; || true
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-${{ matrix.os }}-${{ matrix.arch }}
-          path: release/
+          name: build-${{ matrix.os }}
+          path: |
+            release/*.exe
+            release/*.deb
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: |
+            artifacts/**/**/*.exe
+            artifacts/**/**/*.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
