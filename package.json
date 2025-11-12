@@ -85,10 +85,7 @@
     "artifactName": "${productName}(${version} - ${arch}) Setup.${ext}",
     "mac": {
       "icon": "resources/512x512.png",
-      "target": [{
-        "target": "dmg",
-        "arch": ["x64", "arm64"]
-      }]
+      "target": "dmg"
     },
     "linux": {
       "icon": "resources/",
