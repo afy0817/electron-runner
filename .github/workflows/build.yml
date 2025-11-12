@@ -11,49 +11,42 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+          - os: windows-latest
+          - os: macos-latest
+            arch: x64
+          - os: macos-latest
+            arch: arm64
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Enable pnpm
         run: corepack enable
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Use pnpm 9.x
-        run: corepack prepare pnpm@9.12.0 --activate
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        env:
-          CI: true
 
-      - name: Rebuild native modules
-        run: pnpm exec electron-builder install-app-deps
-
-      # 🔥 이 단계 추가
-      - name: Build renderer and main process
-        run: pnpm exec electron-vite build
-
-      - name: Package app
+      - name: Build
         run: |
-          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-            npm run build:linux
+          if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            pnpm exec electron-vite build
+            pnpm exec electron-builder --mac --arch=${{ matrix.arch }} --publish=never
+          elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            pnpm exec electron-vite build
+            pnpm exec electron-builder --linux --publish=never
           elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            npm run build:win
-          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            npm run build:mac
+            pnpm exec electron-vite build
+            pnpm exec electron-builder --win --publish=never
           fi
         shell: bash
 
-      - name: Upload build artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-${{ matrix.os }}
+          name: build-${{ matrix.os }}-${{ matrix.arch || 'x64' }}
           path: release/
