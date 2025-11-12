@@ -1,7 +1,7 @@
 {
   "name": "electron-runner",
   "description": "Runner test",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "./out/main/index.js",
   "author": "GodSeon <afy0817@gmail.com>",
   "homepage": "https://electron-vite.org",
@@ -82,7 +82,7 @@
     "appId": "com.pedro.electron",
     "productName": "Pedro Electron",
     "icon": "resources/256x265.png",
-    "artifactName": "${productName}(${version} - ${arch}) Setup.${ext}",
+    "artifactName": "${productName}(${version}-${env.TAG}) Setup.${ext}",
     "mac": {
       "icon": "resources/512x512.png",
       "target": "dmg",
@@ -122,5 +122,6 @@
       "electron",
       "esbuild"
     ]
-  }
+  },
+  "packageManager": "pnpm@10.21.0+sha512.da3337267e400fdd3d479a6c68079ac6db01d8ca4f67572083e722775a796788a7a9956613749e000fac20d424b594f7a791a5f4e2e13581c5ef947f26968a40"
 }
