@@ -18,33 +18,31 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Corepack으로 pnpm 활성화
       - name: Enable pnpm
         run: corepack enable
 
-      # Node.js 설치 및 pnpm 캐시
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'pnpm'
 
-      # pnpm 버전 고정 (선택 사항)
       - name: Use pnpm 9.x
         run: corepack prepare pnpm@9.12.0 --activate
 
-      # 의존성 설치
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         env:
           CI: true
 
-      # 네이티브 모듈 리빌드 (sqlite3, zeromq 등)
       - name: Rebuild native modules
         run: pnpm exec electron-builder install-app-deps
 
-      # OS별 빌드 (배포 금지 옵션 추가)
-      - name: Build app
+      # 🔥 이 단계 추가
+      - name: Build renderer and main process
+        run: pnpm exec electron-vite build
+
+      - name: Package app
         run: |
           if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
             pnpm exec electron-builder --linux --publish=never
@@ -55,10 +53,8 @@ jobs:
           fi
         shell: bash
 
-      # 결과물 업로드 (Actions Artifacts)
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.os }}
-          path: |
-            release/
+          path: release/
