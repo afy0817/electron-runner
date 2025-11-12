@@ -30,8 +30,8 @@ jobs:
           cache: 'pnpm'
 
       # pnpm 버전 고정 (선택적)
-      - name: Use pnpm 10.x
-        run: corepack prepare pnpm@10.20.0 --activate
+      - name: Use pnpm 9.x
+        run: corepack prepare pnpm@9.12.0 --activate
 
       # 의존성 설치
       - name: Install dependencies
