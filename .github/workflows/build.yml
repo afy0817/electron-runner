@@ -44,11 +44,11 @@ jobs:
       - name: Package app
         run: |
           if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-            pnpm exec electron-builder --linux --publish=never
+            npm run build:linux
           elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            pnpm exec electron-builder --win --publish=never
+            npm run build:win
           elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            pnpm exec electron-builder --mac --publish=never
+            npm run build:mac
           fi
         shell: bash
 
