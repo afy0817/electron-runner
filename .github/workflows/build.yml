@@ -11,7 +11,13 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+          - os: windows-latest
+          - os: macos-latest
+            arch: x64
+          - os: macos-latest
+            arch: arm64
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -47,13 +53,15 @@ jobs:
             npm run build:linux
           elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             npm run build:win
-          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            npm run build:mac
+          elif [[ "${{ matrix.os }}" == "macos-latest" && "${{ matrix.arch }}" == "x64" ]]; then
+            npm run build:mac_amd
+          elif [[ "${{ matrix.os }}" == "macos-latest" && "${{ matrix.arch }}" == "arm64" ]]; then
+            npm run build:mac_arm
           fi
         shell: bash
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-${{ matrix.os }}
+          name: build-${{ matrix.os }}-${{matrix.arch}}
           path: release/
