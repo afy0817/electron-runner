@@ -25,10 +25,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
-
-      - name: Prepare pnpm cache directory
-        run: mkdir -p ~/.pnpm-store
 
       - name: Use pnpm 9.x
         run: corepack prepare pnpm@9.12.0 --activate
