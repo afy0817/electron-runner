@@ -1,27 +1,24 @@
-name: Electron Release Build (pnpm)
+name: Electron Test Release Build (pnpm)
 
 on:
   push:
     tags:
       - '*'
+env:
+  TAG: ${{ github.ref_name }}
 
 permissions:
   contents: write
 
 jobs:
   build:
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-          - os: windows-latest
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
-          fetch-depth: 0 # 태그 정보 포함
+          fetch-depth: 0
 
       - name: Enable pnpm
         run: corepack enable
@@ -29,38 +26,21 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
-      - name: Use pnpm 10.21.x
-        run: corepack prepare pnpm@10.21.0 --activate
+      - name: Use pnpm 10.22.x
+        run: corepack prepare pnpm@10.22.0 --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         env:
           CI: true
 
-      - name: Rebuild native modules
-        run: pnpm exec electron-builder install-app-deps
-
-      - name: Build renderer and main process
-        run: pnpm exec electron-vite build
+      - name: Build Renderer & Main
+        run: pnpm build
 
       - name: Package app
-        run: |
-          TAG=${{ github.ref_name }}
-          BUILD_DATE=$(date +"%Y-%m-%d %H:%M:%S")
-
-          echo "TAG=$TAG"
-          echo "BUILD_DATE=$BUILD_DATE"
-
-          export TAG BUILD_DATE
-
-          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-            npm run build:linux
-          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            npm run build:win
-          fi
-        shell: bash
+        run: pnpm package
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -73,8 +53,9 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+
     steps:
-      - name: Download all build artifacts
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts

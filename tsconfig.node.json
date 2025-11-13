@@ -6,7 +6,8 @@
     "src/preload/**/*",
     "src/models/**/*",
     "src/db/*",
-    "src/renderer/src/**/*"
+    "src/renderer/src/**/*",
+    "src/types/globals.d.ts"
   ],  "compilerOptions": {
     "composite": true,
     "types": ["electron-vite/node"],

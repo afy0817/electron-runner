@@ -1,5 +1,5 @@
 import { resolve } from 'path'
-import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
+import { defineConfig, externalizeDepsPlugin, loadEnv, UserConfig } from 'electron-vite'
 import vue from '@vitejs/plugin-vue'
 import { PluginOption } from 'vite'
 function forceAssetsPathReplace(): PluginOption {
@@ -13,35 +13,43 @@ function forceAssetsPathReplace(): PluginOption {
     }
   }
 }
-export default defineConfig({
-  main: {
-    plugins: [externalizeDepsPlugin()],
-    build: {
-      commonjsOptions: { ignoreTryCatch: true },
-      rollupOptions: {
-        external: ['bufferutil', 'utf-8-validate']
+
+export default defineConfig((config): UserConfig => {
+  const env = loadEnv(config.mode, process.cwd(), '')
+  console.log(env.TAG)
+  return {
+    main: {
+      plugins: [externalizeDepsPlugin()],
+      build: {
+        commonjsOptions: { ignoreTryCatch: true },
+        rollupOptions: {
+          external: ['bufferutil', 'utf-8-validate']
+        }
+      },
+      resolve: {
+        alias: {
+          '@db': resolve('src/db'),
+          '@main': resolve('src/main'),
+          '@renderer': resolve('src/renderer/src'),
+          '@models': resolve('src/models')
+        }
       }
     },
-    resolve: {
-      alias: {
-        '@db': resolve('src/db'),
-        '@main': resolve('src/main'),
-        '@renderer': resolve('src/renderer/src'),
-        '@models': resolve('src/models')
+    preload: {
+      plugins: [externalizeDepsPlugin()]
+    },
+    renderer: {
+      base: '/',
+      resolve: {
+        alias: {
+          '@renderer': resolve('src/renderer/src'),
+          '@models': resolve('src/models')
+        }
+      },
+      plugins: [vue(), forceAssetsPathReplace()],
+      define: {
+        __APP_TAG__: JSON.stringify(env.TAG ?? 'undefined')
       }
     }
-  },
-  preload: {
-    plugins: [externalizeDepsPlugin()]
-  },
-  renderer: {
-    base: '/',
-    resolve: {
-      alias: {
-        '@renderer': resolve('src/renderer/src'),
-        '@models': resolve('src/models')
-      }
-    },
-    plugins: [vue(), forceAssetsPathReplace()]
   }
 })
