@@ -4,6 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
       target: artifacts
+      args:
+        TAG: TEST
     x-bake:
       output:
         - type=local,dest=release
