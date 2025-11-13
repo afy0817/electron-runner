@@ -20,32 +20,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Enable pnpm
-        run: corepack enable
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Build release artifacts with Docker Bake
+        uses: docker/bake-action@v6
         with:
-          node-version: 22
-
-      - name: Use pnpm 10.22.x
-        run: corepack prepare pnpm@10.22.0 --activate
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-        env:
-          CI: true
-
-      - name: Build Renderer & Main
-        run: pnpm build
-
-      - name: Package app
-        run: pnpm package
+          files: docker-compose.yml
+          targets: builder
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-${{ matrix.os }}
+          name: build-linux
           path: |
             release/*.exe
             release/*.deb
