@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
       target: artifacts
       args:
-        TAG: ${TAG}
+        TAG: TEST
     x-bake:
       output:
         - type=local,dest=release
