@@ -7,7 +7,7 @@
   "homepage": "https://electron-vite.org",
   "scripts": {
     "dev": "tsx dev",
-    "build": "tsx build",
+    "build": "electron-vite build && electron-builder --linux",
     "proto:lint": "npx prettier --write src/models/index.js src/models/index.d.ts && eslint --fix src/models/index.js src/models/index.d.ts",
     "proto:js": "pbjs -t static-module -w es6 --es6 -o src/models/index.js src/models/proto/*.proto",
     "proto:ts": "pbts -o src/models/index.d.ts src/models/index.js",

@@ -13,7 +13,7 @@ FROM package AS builder
 WORKDIR /app
 
 COPY src ./src
-COPY .prettierignore .prettierrc.yaml build.ts dev.ts electron.vite.config.ts electron-builder.yml eslint.config.mjs package.json pnpm-lock.yaml tsconfig.json tsconfig.node.json tsconfig.web.json ./
+COPY .prettierignore .prettierrc.yaml dev.ts electron.vite.config.ts electron-builder.yml eslint.config.mjs package.json pnpm-lock.yaml tsconfig.json tsconfig.node.json tsconfig.web.json ./
 
 ARG ENV
 ARG VITE_APP_VERSION
