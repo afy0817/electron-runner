@@ -24,4 +24,4 @@ RUN --mount=type=cache,id=pnpm_$TARGETARCH,target=/pnpm/store \
     pnpm package
 
 FROM scratch AS artifacts
-COPY --from=package /app/release/ /
+COPY --from=builder /app/release/ /
