@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM node:22.11.0-alpine AS package
+FROM --platform=$BUILDPLATFORM node:22.11.0-bookworm AS package
 WORKDIR /app
 
 RUN npm install -g pnpm
