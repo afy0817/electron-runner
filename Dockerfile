@@ -19,8 +19,7 @@ ARG ENV
 ARG VITE_APP_VERSION
 ARG TARGETARCH
 RUN --mount=type=cache,id=pnpm_$TARGETARCH,target=/pnpm/store \
-    pnpm build \
-    pnpm package
+    pnpm build
 
 FROM scratch AS artifacts
 COPY --from=builder /app/release/ /
