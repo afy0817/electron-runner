@@ -28,13 +28,14 @@ jobs:
         with:
           files: docker-compose.yml
           targets: builder
+        env:
+          TAG: ${{ env.TAG }}
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-linux
           path: |
-            release/*.exe
             release/*.deb
 
   release:
@@ -55,7 +56,6 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            artifacts/**/**/*.exe
             artifacts/**/**/*.deb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

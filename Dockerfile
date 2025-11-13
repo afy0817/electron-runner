@@ -23,4 +23,4 @@ RUN pnpm build
 RUN pnpm package
 
 FROM scratch AS artifacts
-COPY --from=builder /app/release/ /
+COPY --from=builder /app/release /
