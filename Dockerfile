@@ -15,9 +15,11 @@ WORKDIR /app
 COPY src ./src
 COPY .prettierignore .prettierrc.yaml dev.ts electron.vite.config.ts electron-builder.yml eslint.config.mjs package.json pnpm-lock.yaml tsconfig.json tsconfig.node.json tsconfig.web.json ./
 
+ARG TAG
 ARG ENV
 ARG VITE_APP_VERSION
 ARG TARGETARCH
+ENV TAG="$TAG"
 RUN --mount=type=cache,id=pnpm_$TARGETARCH,target=/pnpm/store \
     pnpm build
 
