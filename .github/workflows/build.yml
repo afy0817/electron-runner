@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - '*'
+
 env:
   TAG: ${{ github.ref_name }}
 
@@ -28,11 +29,13 @@ jobs:
         with:
           files: docker-bake.hcl
           targets: builder
+          set: |
+            builder.args.TAG=${{ env.TAG }}
 
       - name: Check release dir
         run: |
           echo "===== RELEASE DIRECTORY ====="
-          find release -maxdepth 2 -type f -name "*.deb" || echo "NO DEB FOUND"
+          find release -maxdepth 2 -type f || echo "NO FILES FOUND"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -45,9 +48,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download all artifacts
+      - name: Download build artifact only
         uses: actions/download-artifact@v4
         with:
+          name: build-linux
           path: artifacts
 
       - name: Create GitHub Release

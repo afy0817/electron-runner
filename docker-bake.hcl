@@ -7,6 +7,10 @@ target "builder" {
   dockerfile = "Dockerfile"
   target = "artifacts"
 
+  args = {
+    TAG = ""
+  }
+
   output = [
     "type=local,dest=release"
   ]
