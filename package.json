@@ -76,9 +76,9 @@
       "output": "release"
     },
     "appId": "com.pedro.electron",
-    "productName": "Pedro Electron",
+    "productName": "PedroElectron",
     "icon": "resources/256x265.png",
-    "artifactName": "${productName}(${env.TAG}) Setup.${ext}",
+    "artifactName": "${productName}-${env.TAG}-Setup.${ext}",
     "mac": {
       "icon": "resources/512x512.png",
       "target": "dmg",
