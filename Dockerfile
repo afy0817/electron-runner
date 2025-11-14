@@ -13,5 +13,4 @@ ENV TAG=$TAG
 RUN pnpm exec electron-vite build
 RUN pnpm exec electron-builder --linux
 
-FROM scratch AS artifacts
-COPY --from=builder /app/release/ /
+FROM builder AS artifacts
