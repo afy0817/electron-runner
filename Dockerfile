@@ -10,7 +10,14 @@ WORKDIR /app
 COPY . .
 ARG TAG
 ENV TAG=$TAG
+
+# Build app + package
 RUN pnpm exec electron-vite build
 RUN pnpm exec electron-builder --linux
 
-FROM builder AS artifacts
+RUN mkdir -p /release-final \
+    && cp -r /app/release/* /release-final/
+
+# artifacts stage = buildx가 export할 rootfs
+FROM scratch AS artifacts
+COPY --from=builder /release-final/ /

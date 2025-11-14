@@ -30,7 +30,9 @@ jobs:
           targets: builder
 
       - name: Check release dir
-        run: find . -name "*.deb"
+        run: |
+          echo "===== RELEASE DIRECTORY ====="
+          find release -maxdepth 2 -type f -name "*.deb" || echo "NO DEB FOUND"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -55,6 +57,6 @@ jobs:
           name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
-          files: artifacts/**/**/*.deb
+          files: artifacts/**/*.deb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
