@@ -33,9 +33,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-linux
-          path: |
-            release/*.exe
-            release/*.deb
+          path: release/*.deb
 
   release:
     needs: build
@@ -55,7 +53,6 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            artifacts/**/**/*.exe
-            artifacts/**/**/*.deb
+            artifacts/**/*.deb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,26 +1,17 @@
-FROM --platform=$BUILDPLATFORM node:22.11.0-bookworm AS package
+FROM electronuserland/builder:latest AS package
 WORKDIR /app
-
-RUN npm install -g pnpm
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-ARG TARGETARCH
+ENV CI=true
+RUN corepack enable && corepack prepare pnpm@10 --activate
 COPY package.json pnpm-lock.yaml ./
-RUN --mount=type=cache,id=pnpm_$TARGETARCH,target=/pnpm/store \
-    pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 FROM package AS builder
 WORKDIR /app
-
-COPY src ./src
-COPY .prettierignore .prettierrc.yaml electron.vite.config.ts electron-builder.yml eslint.config.mjs package.json pnpm-lock.yaml tsconfig.json tsconfig.node.json tsconfig.web.json ./
-
+COPY . .
 ARG TAG
 ENV TAG=$TAG
-ARG TARGETARCH
-RUN --mount=type=cache,id=pnpm_$TARGETARCH,target=/pnpm/store
-RUN pnpm build
-RUN pnpm package
+RUN pnpm exec electron-vite build
+RUN pnpm exec electron-builder --linux
 
 FROM scratch AS artifacts
 COPY --from=builder /app/release/ /
