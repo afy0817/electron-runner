@@ -6,8 +6,10 @@ services:
       target: artifacts
       args:
         TAG: ${TAG}
-    x-bake:
-      output:
-        - type=local,dest=release
-      platforms:
-        - linux/amd64
+
+x-bake:
+  builder:
+    output:
+      - type=local,dest=release
+    platforms:
+      - linux/amd64
